@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    "strict": true,
+
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    "types": ["node", "@playwright/test"],
+
+    "skipLibCheck": true,
+
+    "forceConsistentCasingInFileNames": true,
+
+    "outDir": "./dist"
+  },
+
+  "include": [
+    "tests",
+    "pages",
+    "api",
+    "utils",
+    "fixtures",
+    "playwright.config.ts"
+  ]
+}

@@ -1,0 +1,34 @@
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Screenshots and Videos
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.webm
+
+# Environment Variables (contains sensitive credentials)
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Allure Reports
+allure-results/
+allure-report/
+
+# Documentation (not ready for commit)
+docs/
+
+# Example tests (not ready for commit)
+tests/examples/

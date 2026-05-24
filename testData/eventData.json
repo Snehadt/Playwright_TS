@@ -1,0 +1,67 @@
+{
+    "_DEPRECATION_NOTICE": "This JSON file is DEPRECATED. Use utils/eventDataGenerator.ts for dynamic future dates. See utils/README_EVENT_DATA.md for migration guide.",
+    "_NOTE": "Dates below are set far in future but will eventually become outdated. The eventDataGenerator provides dates that are ALWAYS in the future.",
+
+    "validEvent": {
+        "title": "Tech Conference 2026",
+        "description": "Annual technology conference featuring industry leaders and workshops",
+        "category": "Conference",
+        "city": "San Francisco",
+        "venue": "Moscone Center",
+        "dateTime": "2030-06-15T09:00",
+        "price": 299,
+        "totalSeat": 500,
+        "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87"
+    },
+    "eventWithoutDescription": {
+        "title": "Networking Meetup",
+        "category": "Workshop",
+        "city": "New York",
+        "venue": "Empire State Building",
+        "dateTime": "2030-07-01T13:00",
+        "price": 0,
+        "totalSeat": 100
+    },
+    "workshopEvent": {
+        "title": "AI Workshop",
+        "description": "Hands-on workshop covering sports analytics",
+        "category": "Sports",
+        "city": "Boston",
+        "venue": "MIT Campus",
+        "dateTime": "2030-08-15T14:00",
+        "price": 150,
+        "totalSeat": 50,
+        "imageUrl": "https://images.unsplash.com/photo-1677442136019-21780ecad995"
+    },
+    "freeEvent": {
+        "title": "Community Gathering",
+        "description": "Free community event",
+        "category": "Festival",
+        "city": "Seattle",
+        "venue": "Community Center",
+        "dateTime": "2030-09-20T18:00",
+        "price": 0,
+        "totalSeat": 200
+    },
+    "eventWithFreeSeat": {
+        "title": "Music Festival 2026 Free event",
+        "description": "Annual music festival featuring top artists",
+        "category": "Concert",
+        "city": "Austin",
+        "venue": "Zilker Park",
+        "dateTime": "2030-10-30T01:00",
+        "price": 199,
+        "totalSeat": 1000,
+        "imageUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea"
+    },
+    "sqlInjection": {
+        "title": "'; DROP TABLE events--",
+        "description": "Free community event",
+        "category": "Conference",
+        "city": "'; DROP TABLE events--",
+        "venue": "'; DROP TABLE events--",
+        "dateTime": "2030-12-01T10:00",
+        "price": 0,
+        "totalSeat": 200
+    }
+}
