@@ -52,19 +52,32 @@ stages:
           - script: npx playwright install --with-deps chromium
             displayName: 'Install Playwright browsers'
 
+          # Verify environment variables are set
+          - script: |
+              echo "Verifying environment variables..."
+              if [ -z "$TEST_USER_EMAIL" ]; then
+                echo "ERROR: TEST_USER_EMAIL is not set"
+                exit 1
+              else
+                echo "✓ TEST_USER_EMAIL is set"
+              fi
+              if [ -z "$TEST_USER_PASSWORD" ]; then
+                echo "ERROR: TEST_USER_PASSWORD is not set"
+                exit 1
+              else
+                echo "✓ TEST_USER_PASSWORD is set"
+              fi
+              echo "✓ All required variables are set"
+            displayName: 'Verify Environment Variables'
+            env:
+              TEST_USER_EMAIL: $(TEST_USER_EMAIL)
+              TEST_USER_PASSWORD: $(TEST_USER_PASSWORD)
+
           # Run Playwright Tests with Azure Service
           - script: |
               echo "Running Playwright tests with Microsoft Playwright Testing..."
               echo "Workspace URL: $(PLAYWRIGHT_SERVICE_URL)"
               echo "Test Environment: $(TEST_ENV)"
-
-              # Export environment variables for tests
-              export PLAYWRIGHT_SERVICE_URL="$(PLAYWRIGHT_SERVICE_URL)"
-              export PLAYWRIGHT_SERVICE_ACCESS_TOKEN="$(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)"
-              export TEST_USER_EMAIL="$(TEST_USER_EMAIL)"
-              export TEST_USER_PASSWORD="$(TEST_USER_PASSWORD)"
-              export TEST_ENV="$(TEST_ENV)"
-              export CI=true
 
               # Run tests using service config
               npx playwright test --config=playwright.service.config.ts --workers=10
@@ -72,6 +85,9 @@ stages:
             env:
               PLAYWRIGHT_SERVICE_URL: $(PLAYWRIGHT_SERVICE_URL)
               PLAYWRIGHT_SERVICE_ACCESS_TOKEN: $(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
+              TEST_USER_EMAIL: $(TEST_USER_EMAIL)
+              TEST_USER_PASSWORD: $(TEST_USER_PASSWORD)
+              TEST_ENV: $(TEST_ENV)
               TEST_USER_EMAIL: $(TEST_USER_EMAIL)
               TEST_USER_PASSWORD: $(TEST_USER_PASSWORD)
               TEST_ENV: $(TEST_ENV)
