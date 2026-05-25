@@ -52,46 +52,41 @@ stages:
           - script: npx playwright install --with-deps chromium
             displayName: 'Install Playwright browsers'
 
-          # Verify environment variables are set
+          # Create .env file with credentials
           - task: Bash@3
-            displayName: 'Verify Environment Variables'
+            displayName: 'Create .env file for tests'
             inputs:
               targetType: 'inline'
               script: |
-                echo "Verifying environment variables..."
+                echo "Creating .env file with credentials..."
 
-                if [ -z "$(TEST_USER_EMAIL)" ]; then
-                  echo "ERROR: TEST_USER_EMAIL variable not defined in pipeline"
-                  exit 1
-                fi
+                cat > .env << EOF
+                TEST_ENV=$(TEST_ENV)
+                TEST_USER_EMAIL=$(TEST_USER_EMAIL)
+                TEST_USER_PASSWORD=$(TEST_USER_PASSWORD)
+                PLAYWRIGHT_SERVICE_URL=$(PLAYWRIGHT_SERVICE_URL)
+                PLAYWRIGHT_SERVICE_ACCESS_TOKEN=$(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
+                BASE_URL=https://eventhub.rahulshettyacademy.com
+                API_BASE_URL=https://api.eventhub.rahulshettyacademy.com
+                RUN_PARALLEL=true
+                EOF
 
-                if [ -z "$(TEST_USER_PASSWORD)" ]; then
-                  echo "ERROR: TEST_USER_PASSWORD variable not defined in pipeline"
-                  exit 1
-                fi
-
-                echo "✓ TEST_USER_EMAIL is configured: $(TEST_USER_EMAIL)"
-                echo "✓ TEST_USER_PASSWORD is configured"
-                echo "✓ All required variables are set correctly"
+                echo "✓ .env file created"
+                echo "Contents (with masked secrets):"
+                cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/TOKEN=.*/TOKEN=***/'
 
           # Run Playwright Tests with Azure Service
           - task: Bash@3
             displayName: 'Run Playwright Tests on Azure'
             continueOnError: true
-            env:
-              PLAYWRIGHT_SERVICE_URL: $(PLAYWRIGHT_SERVICE_URL)
-              PLAYWRIGHT_SERVICE_ACCESS_TOKEN: $(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
-              TEST_USER_EMAIL: $(TEST_USER_EMAIL)
-              TEST_USER_PASSWORD: $(TEST_USER_PASSWORD)
-              TEST_ENV: $(TEST_ENV)
-              CI: true
             inputs:
               targetType: 'inline'
               script: |
                 echo "Running Playwright tests with Microsoft Playwright Testing..."
-                echo "Workspace URL: $PLAYWRIGHT_SERVICE_URL"
-                echo "Test Environment: $TEST_ENV"
-                echo "User Email: $TEST_USER_EMAIL"
+                echo "Test Environment: $(TEST_ENV)"
+
+                # .env file is already created in previous step
+                # Playwright will load it via dotenv in ConfigManager
 
                 # Run tests using service config
                 npx playwright test --config=playwright.service.config.ts --workers=10
