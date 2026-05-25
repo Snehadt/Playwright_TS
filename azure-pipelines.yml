@@ -88,28 +88,49 @@ stages:
               failTaskOnFailedTests: true
               testRunTitle: 'Playwright Tests - $(Build.BuildNumber)'
 
-          # Publish HTML report
+          # Publish HTML report (only if exists)
+          - script: |
+              if [ -d "playwright-report" ]; then
+                echo "##vso[task.setvariable variable=REPORT_EXISTS]true"
+              fi
+            displayName: 'Check if HTML report exists'
+            condition: succeededOrFailed()
+
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Playwright HTML Report'
-            condition: succeededOrFailed()
+            condition: and(succeededOrFailed(), eq(variables.REPORT_EXISTS, 'true'))
             inputs:
               targetPath: 'playwright-report'
               artifact: 'playwright-report-$(System.JobAttempt)'
               publishLocation: 'pipeline'
 
-          # Publish Allure results
+          # Publish Allure results (only if exists)
+          - script: |
+              if [ -d "allure-results" ]; then
+                echo "##vso[task.setvariable variable=ALLURE_EXISTS]true"
+              fi
+            displayName: 'Check if Allure results exist'
+            condition: succeededOrFailed()
+
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Allure Results'
-            condition: succeededOrFailed()
+            condition: and(succeededOrFailed(), eq(variables.ALLURE_EXISTS, 'true'))
             inputs:
               targetPath: 'allure-results'
               artifact: 'allure-results-$(System.JobAttempt)'
               publishLocation: 'pipeline'
 
-          # Publish test artifacts (screenshots, videos, traces) on failure
+          # Publish test artifacts (screenshots, videos, traces) - only if exists
+          - script: |
+              if [ -d "test-results" ]; then
+                echo "##vso[task.setvariable variable=TEST_RESULTS_EXISTS]true"
+              fi
+            displayName: 'Check if test results exist'
+            condition: succeededOrFailed()
+
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish Test Artifacts (Failures)'
-            condition: failed()
+            displayName: 'Publish Test Artifacts'
+            condition: and(succeededOrFailed(), eq(variables.TEST_RESULTS_EXISTS, 'true'))
             inputs:
               targetPath: 'test-results'
               artifact: 'test-artifacts-$(System.JobAttempt)'
