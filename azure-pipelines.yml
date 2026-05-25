@@ -60,12 +60,17 @@ stages:
                 exit 1
               else
                 echo "✓ TEST_USER_EMAIL is set"
+                echo "  Value: $TEST_USER_EMAIL"
+                echo "  Length: ${#TEST_USER_EMAIL}"
+                # Check for extra spaces or special characters
+                echo "  Hex dump of first 20 chars:"
+                echo "$TEST_USER_EMAIL" | head -c 20 | od -A n -t x1
               fi
               if [ -z "$TEST_USER_PASSWORD" ]; then
                 echo "ERROR: TEST_USER_PASSWORD is not set"
                 exit 1
               else
-                echo "✓ TEST_USER_PASSWORD is set"
+                echo "✓ TEST_USER_PASSWORD is set (length: ${#TEST_USER_PASSWORD})"
               fi
               echo "✓ All required variables are set"
             displayName: 'Verify Environment Variables'
