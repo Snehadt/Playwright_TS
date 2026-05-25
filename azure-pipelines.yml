@@ -1,0 +1,120 @@
+# Azure Pipeline for Playwright Tests with Microsoft Playwright Testing
+# This pipeline runs Playwright tests on Azure cloud browsers
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - README.md
+      - docs/**
+      - "*.md"
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: NODE_VERSION
+    value: '20.x'
+  - name: PLAYWRIGHT_SERVICE_URL
+    value: 'wss://eastasia.api.playwright.microsoft.com/playwrightworkspaces/4247ea18-110c-4652-b24a-5eef04f21c32/browsers'
+
+stages:
+  - stage: Test
+    displayName: 'Run Playwright Tests'
+    jobs:
+      - job: PlaywrightTests
+        displayName: 'Execute Playwright Test Suite'
+        timeoutInMinutes: 60
+
+        steps:
+          # Install Node.js
+          - task: NodeTool@0
+            displayName: 'Install Node.js $(NODE_VERSION)'
+            inputs:
+              versionSpec: '$(NODE_VERSION)'
+
+          # Install dependencies
+          - script: npm ci
+            displayName: 'Install npm dependencies'
+            workingDirectory: $(Build.SourcesDirectory)
+
+          # Install Playwright browsers (for local fallback if Azure service fails)
+          - script: npx playwright install --with-deps chromium
+            displayName: 'Install Playwright browsers'
+
+          # Run Playwright Tests with Azure Service
+          - script: |
+              echo "Running Playwright tests with Microsoft Playwright Testing..."
+              echo "Workspace URL: $(PLAYWRIGHT_SERVICE_URL)"
+
+              # Export environment variables
+              export PLAYWRIGHT_SERVICE_URL="$(PLAYWRIGHT_SERVICE_URL)"
+              export CI=true
+
+              # Run tests using service config
+              npx playwright test --config=playwright.service.config.ts --workers=10
+            displayName: 'Run Playwright Tests on Azure'
+            env:
+              PLAYWRIGHT_SERVICE_URL: $(PLAYWRIGHT_SERVICE_URL)
+              PLAYWRIGHT_SERVICE_ACCESS_TOKEN: $(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
+            continueOnError: true
+
+          # Publish test results (if using JUnit reporter)
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/test-results/**/*.xml'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+              testRunTitle: 'Playwright Tests - $(Build.BuildNumber)'
+
+          # Publish HTML report
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Playwright HTML Report'
+            condition: succeededOrFailed()
+            inputs:
+              targetPath: 'playwright-report'
+              artifact: 'playwright-report-$(System.JobAttempt)'
+              publishLocation: 'pipeline'
+
+          # Publish Allure results
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Allure Results'
+            condition: succeededOrFailed()
+            inputs:
+              targetPath: 'allure-results'
+              artifact: 'allure-results-$(System.JobAttempt)'
+              publishLocation: 'pipeline'
+
+          # Publish test artifacts (screenshots, videos, traces) on failure
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Test Artifacts (Failures)'
+            condition: failed()
+            inputs:
+              targetPath: 'test-results'
+              artifact: 'test-artifacts-$(System.JobAttempt)'
+              publishLocation: 'pipeline'
+
+          # Display summary
+          - script: |
+              echo "========================================="
+              echo "Test Execution Summary"
+              echo "========================================="
+              echo "Build Number: $(Build.BuildNumber)"
+              echo "Build ID: $(Build.BuildId)"
+              echo "Branch: $(Build.SourceBranchName)"
+              echo "Commit: $(Build.SourceVersion)"
+              echo "========================================="
+            displayName: 'Display Test Summary'
+            condition: always()
