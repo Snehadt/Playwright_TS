@@ -53,49 +53,48 @@ stages:
             displayName: 'Install Playwright browsers'
 
           # Verify environment variables are set
-          - bash: |
-              echo "Verifying environment variables..."
-
-              # Export variables first
-              export TEST_USER_EMAIL="$(TEST_USER_EMAIL)"
-              export TEST_USER_PASSWORD="$(TEST_USER_PASSWORD)"
-
-              if [ -z "$TEST_USER_EMAIL" ] || [ "$TEST_USER_EMAIL" = "\$(TEST_USER_EMAIL)" ]; then
-                echo "ERROR: TEST_USER_EMAIL is not set properly"
-                echo "Value received: $TEST_USER_EMAIL"
-                exit 1
-              else
-                echo "✓ TEST_USER_EMAIL is set: $TEST_USER_EMAIL"
-              fi
-
-              if [ -z "$TEST_USER_PASSWORD" ] || [ "$TEST_USER_PASSWORD" = "\$(TEST_USER_PASSWORD)" ]; then
-                echo "ERROR: TEST_USER_PASSWORD is not set properly"
-                exit 1
-              else
-                echo "✓ TEST_USER_PASSWORD is set (length: ${#TEST_USER_PASSWORD})"
-              fi
-
-              echo "✓ All required variables are set correctly"
+          - task: Bash@3
             displayName: 'Verify Environment Variables'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Verifying environment variables..."
+
+                if [ -z "$(TEST_USER_EMAIL)" ]; then
+                  echo "ERROR: TEST_USER_EMAIL variable not defined in pipeline"
+                  exit 1
+                fi
+
+                if [ -z "$(TEST_USER_PASSWORD)" ]; then
+                  echo "ERROR: TEST_USER_PASSWORD variable not defined in pipeline"
+                  exit 1
+                fi
+
+                echo "✓ TEST_USER_EMAIL is configured: $(TEST_USER_EMAIL)"
+                echo "✓ TEST_USER_PASSWORD is configured"
+                echo "✓ All required variables are set correctly"
 
           # Run Playwright Tests with Azure Service
-          - bash: |
-              echo "Running Playwright tests with Microsoft Playwright Testing..."
-              echo "Workspace URL: $(PLAYWRIGHT_SERVICE_URL)"
-              echo "Test Environment: $(TEST_ENV)"
-
-              # Set environment variables and run tests
-              export PLAYWRIGHT_SERVICE_URL="$(PLAYWRIGHT_SERVICE_URL)"
-              export PLAYWRIGHT_SERVICE_ACCESS_TOKEN="$(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)"
-              export TEST_USER_EMAIL="$(TEST_USER_EMAIL)"
-              export TEST_USER_PASSWORD="$(TEST_USER_PASSWORD)"
-              export TEST_ENV="$(TEST_ENV)"
-              export CI=true
-
-              # Run tests using service config
-              npx playwright test --config=playwright.service.config.ts --workers=10
+          - task: Bash@3
             displayName: 'Run Playwright Tests on Azure'
             continueOnError: true
+            env:
+              PLAYWRIGHT_SERVICE_URL: $(PLAYWRIGHT_SERVICE_URL)
+              PLAYWRIGHT_SERVICE_ACCESS_TOKEN: $(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
+              TEST_USER_EMAIL: $(TEST_USER_EMAIL)
+              TEST_USER_PASSWORD: $(TEST_USER_PASSWORD)
+              TEST_ENV: $(TEST_ENV)
+              CI: true
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Running Playwright tests with Microsoft Playwright Testing..."
+                echo "Workspace URL: $PLAYWRIGHT_SERVICE_URL"
+                echo "Test Environment: $TEST_ENV"
+                echo "User Email: $TEST_USER_EMAIL"
+
+                # Run tests using service config
+                npx playwright test --config=playwright.service.config.ts --workers=10
 
           # Publish test results (if using JUnit reporter)
           - task: PublishTestResults@2
