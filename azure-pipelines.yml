@@ -27,6 +27,9 @@ variables:
     value: '20.x'
   - name: PLAYWRIGHT_SERVICE_URL
     value: 'wss://eastasia.api.playwright.microsoft.com/playwrightworkspaces/4247ea18-110c-4652-b24a-5eef04f21c32/browsers'
+  - name: TEST_ENV
+    value: 'production'
+  # TEST_USER_EMAIL and TEST_USER_PASSWORD should be set as Secret variables in Azure DevOps
 
 stages:
   - stage: Test
@@ -59,21 +62,32 @@ stages:
               targetType: 'inline'
               script: |
                 echo "Creating .env file with credentials..."
+                
+                # Debug: Check if variables are set
+                if [ -z "$(TEST_USER_EMAIL)" ]; then
+                  echo "❌ ERROR: TEST_USER_EMAIL is not set in Azure DevOps pipeline variables!"
+                  exit 1
+                fi
+                
+                if [ -z "$(TEST_USER_PASSWORD)" ]; then
+                  echo "❌ ERROR: TEST_USER_PASSWORD is not set in Azure DevOps pipeline variables!"
+                  exit 1
+                fi
 
                 cat > .env << EOF
-                TEST_ENV=$(TEST_ENV)
-                TEST_USER_EMAIL=$(TEST_USER_EMAIL)
-                TEST_USER_PASSWORD=$(TEST_USER_PASSWORD)
-                PLAYWRIGHT_SERVICE_URL=$(PLAYWRIGHT_SERVICE_URL)
-                PLAYWRIGHT_SERVICE_ACCESS_TOKEN=$(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
-                BASE_URL=https://eventhub.rahulshettyacademy.com
-                API_BASE_URL=https://api.eventhub.rahulshettyacademy.com
-                RUN_PARALLEL=true
-                EOF
+TEST_ENV=$(TEST_ENV)
+TEST_USER_EMAIL=$(TEST_USER_EMAIL)
+TEST_USER_PASSWORD=$(TEST_USER_PASSWORD)
+PLAYWRIGHT_SERVICE_URL=$(PLAYWRIGHT_SERVICE_URL)
+PLAYWRIGHT_SERVICE_ACCESS_TOKEN=$(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
+BASE_URL=https://eventhub.rahulshettyacademy.com
+API_BASE_URL=https://api.eventhub.rahulshettyacademy.com
+RUN_PARALLEL=true
+EOF
 
                 echo "✓ .env file created"
-                echo "Contents (with masked secrets):"
-                cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/TOKEN=.*/TOKEN=***/'
+                echo "Verifying required variables..."
+                grep -E "TEST_USER_EMAIL|TEST_USER_PASSWORD|PLAYWRIGHT_SERVICE_URL" .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/TOKEN=.*/TOKEN=***/' || echo "❌ Required variables not found in .env"
 
           # Run Playwright Tests with Azure Service
           - task: Bash@3
