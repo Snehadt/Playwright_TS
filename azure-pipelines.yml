@@ -71,6 +71,11 @@ stages:
                 if [ -z "$TEST_USER_EMAIL" ]; then
                   echo "ERROR: TEST_USER_EMAIL is not set!"
                   exit 1
+                elif [[ "$TEST_USER_EMAIL" == *'$('* ]]; then
+                  echo "ERROR: TEST_USER_EMAIL contains unexpanded Azure variable syntax: $TEST_USER_EMAIL"
+                  echo "This means the variable 'TEST_USER_EMAIL' is not defined in Azure DevOps Pipeline Variables."
+                  echo "Please add it in: Pipelines > Edit > Variables > New variable"
+                  exit 1
                 else
                   echo "✓ TEST_USER_EMAIL is set (length: ${#TEST_USER_EMAIL})"
                   echo "  Email format check: $TEST_USER_EMAIL" | grep -E '^[^\s@]+@[^\s@]+\.[^\s@]+$' && echo "  ✓ Valid email format" || echo "  ✗ Invalid email format"
@@ -78,6 +83,11 @@ stages:
 
                 if [ -z "$TEST_USER_PASSWORD" ]; then
                   echo "ERROR: TEST_USER_PASSWORD is not set!"
+                  exit 1
+                elif [[ "$TEST_USER_PASSWORD" == *'$('* ]]; then
+                  echo "ERROR: TEST_USER_PASSWORD contains unexpanded Azure variable syntax"
+                  echo "This means the variable 'TEST_USER_PASSWORD' is not defined in Azure DevOps Pipeline Variables."
+                  echo "Please add it in: Pipelines > Edit > Variables > New variable"
                   exit 1
                 else
                   echo "✓ TEST_USER_PASSWORD is set (length: ${#TEST_USER_PASSWORD})"
@@ -98,13 +108,24 @@ stages:
                 echo "Creating .env file with credentials..."
 
                 # Validate environment variables
-                if [ -z "$TEST_USER_EMAIL" ]; then
-                  echo "ERROR: TEST_USER_EMAIL environment variable is empty!"
+                if [ -z "$TEST_USER_EMAIL" ] || [[ "$TEST_USER_EMAIL" == *'$('* ]]; then
+                  echo "❌ ERROR: TEST_USER_EMAIL is not properly set!"
+                  echo "Current value: $TEST_USER_EMAIL"
+                  echo ""
+                  echo "To fix this:"
+                  echo "1. Go to Azure DevOps > Pipelines > Your Pipeline"
+                  echo "2. Click 'Edit' > 'Variables' (top right)"
+                  echo "3. Click '+ New variable'"
+                  echo "4. Name: TEST_USER_EMAIL"
+                  echo "5. Value: your.email@example.com"
+                  echo "6. Check 'Keep this value secret' if needed"
+                  echo "7. Click OK and Save"
                   exit 1
                 fi
 
-                if [ -z "$TEST_USER_PASSWORD" ]; then
-                  echo "ERROR: TEST_USER_PASSWORD environment variable is empty!"
+                if [ -z "$TEST_USER_PASSWORD" ] || [[ "$TEST_USER_PASSWORD" == *'$('* ]]; then
+                  echo "❌ ERROR: TEST_USER_PASSWORD is not properly set!"
+                  echo "Please add TEST_USER_PASSWORD variable in Azure DevOps Pipeline Variables"
                   exit 1
                 fi
 
