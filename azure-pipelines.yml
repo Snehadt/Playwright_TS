@@ -55,6 +55,34 @@ stages:
           - script: npx playwright install --with-deps chromium
             displayName: 'Install Playwright browsers'
 
+          # Debug: Check pipeline variables
+          - task: Bash@3
+            displayName: 'Debug - Verify pipeline variables'
+            env:
+              TEST_USER_EMAIL: $(TEST_USER_EMAIL)
+              TEST_USER_PASSWORD: $(TEST_USER_PASSWORD)
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "Checking pipeline variables..."
+                echo "TEST_ENV from direct variable: $(TEST_ENV)"
+
+                # Check if variables are available in env block
+                if [ -z "$TEST_USER_EMAIL" ]; then
+                  echo "ERROR: TEST_USER_EMAIL is not set!"
+                  exit 1
+                else
+                  echo "✓ TEST_USER_EMAIL is set (length: ${#TEST_USER_EMAIL})"
+                  echo "  Email format check: $TEST_USER_EMAIL" | grep -E '^[^\s@]+@[^\s@]+\.[^\s@]+$' && echo "  ✓ Valid email format" || echo "  ✗ Invalid email format"
+                fi
+
+                if [ -z "$TEST_USER_PASSWORD" ]; then
+                  echo "ERROR: TEST_USER_PASSWORD is not set!"
+                  exit 1
+                else
+                  echo "✓ TEST_USER_PASSWORD is set (length: ${#TEST_USER_PASSWORD})"
+                fi
+
           # Create .env file with credentials
           - task: Bash@3
             displayName: 'Create .env file for tests'
@@ -62,36 +90,47 @@ stages:
               TEST_USER_EMAIL: $(TEST_USER_EMAIL)
               TEST_USER_PASSWORD: $(TEST_USER_PASSWORD)
               PLAYWRIGHT_SERVICE_ACCESS_TOKEN: $(PLAYWRIGHT_SERVICE_ACCESS_TOKEN)
+              TEST_ENV: $(TEST_ENV)
+              PLAYWRIGHT_SERVICE_URL: $(PLAYWRIGHT_SERVICE_URL)
             inputs:
               targetType: 'inline'
               script: |
                 echo "Creating .env file with credentials..."
-                
-                # Check if variables are set
+
+                # Validate environment variables
                 if [ -z "$TEST_USER_EMAIL" ]; then
-                  echo "ERROR: TEST_USER_EMAIL is not set in Azure DevOps pipeline variables!"
+                  echo "ERROR: TEST_USER_EMAIL environment variable is empty!"
                   exit 1
                 fi
-                
+
                 if [ -z "$TEST_USER_PASSWORD" ]; then
-                  echo "ERROR: TEST_USER_PASSWORD is not set in Azure DevOps pipeline variables!"
+                  echo "ERROR: TEST_USER_PASSWORD environment variable is empty!"
                   exit 1
                 fi
 
-                # Create .env file
-                {
-                  echo "TEST_ENV=$(TEST_ENV)"
-                  echo "TEST_USER_EMAIL=$TEST_USER_EMAIL"
-                  echo "TEST_USER_PASSWORD=$TEST_USER_PASSWORD"
-                  echo "PLAYWRIGHT_SERVICE_URL=$(PLAYWRIGHT_SERVICE_URL)"
-                  echo "PLAYWRIGHT_SERVICE_ACCESS_TOKEN=$PLAYWRIGHT_SERVICE_ACCESS_TOKEN"
-                  echo "BASE_URL=https://eventhub.rahulshettyacademy.com"
-                  echo "API_BASE_URL=https://api.eventhub.rahulshettyacademy.com"
-                  echo "RUN_PARALLEL=true"
-                } > .env
+                # Create .env file with proper quoting
+                cat > .env << 'ENVEOF'
+TEST_ENV=${TEST_ENV}
+TEST_USER_EMAIL=${TEST_USER_EMAIL}
+TEST_USER_PASSWORD=${TEST_USER_PASSWORD}
+PLAYWRIGHT_SERVICE_URL=${PLAYWRIGHT_SERVICE_URL}
+PLAYWRIGHT_SERVICE_ACCESS_TOKEN=${PLAYWRIGHT_SERVICE_ACCESS_TOKEN}
+BASE_URL=https://eventhub.rahulshettyacademy.com
+API_BASE_URL=https://api.eventhub.rahulshettyacademy.com
+RUN_PARALLEL=true
+ENVEOF
 
-                echo "✓ .env file created"
-                grep "TEST_USER_EMAIL\|TEST_USER_PASSWORD\|PLAYWRIGHT_SERVICE_URL" .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/TOKEN=.*/TOKEN=***/'
+                # Perform variable substitution
+                sed -i "s|\${TEST_ENV}|${TEST_ENV}|g" .env
+                sed -i "s|\${TEST_USER_EMAIL}|${TEST_USER_EMAIL}|g" .env
+                sed -i "s|\${TEST_USER_PASSWORD}|${TEST_USER_PASSWORD}|g" .env
+                sed -i "s|\${PLAYWRIGHT_SERVICE_URL}|${PLAYWRIGHT_SERVICE_URL}|g" .env
+                sed -i "s|\${PLAYWRIGHT_SERVICE_ACCESS_TOKEN}|${PLAYWRIGHT_SERVICE_ACCESS_TOKEN}|g" .env
+
+                echo "✓ .env file created successfully"
+                echo ""
+                echo "Contents (with secrets masked):"
+                cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/TOKEN=.*/TOKEN=***/'
 
           # Run Playwright Tests with Azure Service
           - task: Bash@3
