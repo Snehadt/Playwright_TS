@@ -108,24 +108,15 @@ stages:
                   exit 1
                 fi
 
-                # Create .env file with proper quoting
-                cat > .env << 'ENVEOF'
-TEST_ENV=${TEST_ENV}
-TEST_USER_EMAIL=${TEST_USER_EMAIL}
-TEST_USER_PASSWORD=${TEST_USER_PASSWORD}
-PLAYWRIGHT_SERVICE_URL=${PLAYWRIGHT_SERVICE_URL}
-PLAYWRIGHT_SERVICE_ACCESS_TOKEN=${PLAYWRIGHT_SERVICE_ACCESS_TOKEN}
-BASE_URL=https://eventhub.rahulshettyacademy.com
-API_BASE_URL=https://api.eventhub.rahulshettyacademy.com
-RUN_PARALLEL=true
-ENVEOF
-
-                # Perform variable substitution
-                sed -i "s|\${TEST_ENV}|${TEST_ENV}|g" .env
-                sed -i "s|\${TEST_USER_EMAIL}|${TEST_USER_EMAIL}|g" .env
-                sed -i "s|\${TEST_USER_PASSWORD}|${TEST_USER_PASSWORD}|g" .env
-                sed -i "s|\${PLAYWRIGHT_SERVICE_URL}|${PLAYWRIGHT_SERVICE_URL}|g" .env
-                sed -i "s|\${PLAYWRIGHT_SERVICE_ACCESS_TOKEN}|${PLAYWRIGHT_SERVICE_ACCESS_TOKEN}|g" .env
+                # Create .env file by writing each line
+                printf "TEST_ENV=%s\n" "$TEST_ENV" > .env
+                printf "TEST_USER_EMAIL=%s\n" "$TEST_USER_EMAIL" >> .env
+                printf "TEST_USER_PASSWORD=%s\n" "$TEST_USER_PASSWORD" >> .env
+                printf "PLAYWRIGHT_SERVICE_URL=%s\n" "$PLAYWRIGHT_SERVICE_URL" >> .env
+                printf "PLAYWRIGHT_SERVICE_ACCESS_TOKEN=%s\n" "$PLAYWRIGHT_SERVICE_ACCESS_TOKEN" >> .env
+                printf "BASE_URL=https://eventhub.rahulshettyacademy.com\n" >> .env
+                printf "API_BASE_URL=https://api.eventhub.rahulshettyacademy.com\n" >> .env
+                printf "RUN_PARALLEL=true\n" >> .env
 
                 echo "✓ .env file created successfully"
                 echo ""
