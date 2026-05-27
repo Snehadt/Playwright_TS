@@ -1,8 +1,8 @@
 import { defineConfig } from '@playwright/test';
-import config from './playwright.config';
+import playwrightConfig from './playwright.config';
 
 /* Learn more about service configuration at https://aka.ms/pww/docs/config */
-export default defineConfig(config, {
+export default defineConfig(playwrightConfig, {
   // Add reporters including Microsoft Playwright Testing reporter
   reporter: [
     ['list'],

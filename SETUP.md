@@ -60,6 +60,18 @@ npx playwright test --headed
 RUN_PARALLEL=false npx playwright test
 ```
 
+### Run tests on specific browser
+```bash
+npx playwright test --project=chromium
+npx playwright test --project=firefox
+npx playwright test --project=webkit
+```
+
+### Run tests on multiple browsers
+```bash
+npx playwright test --project=chromium --project=firefox
+```
+
 ## Configuration
 
 ### Environment Variables (.env file)
@@ -74,6 +86,11 @@ TEST_USER_PASSWORD=YourPassword123
 
 # Test Execution
 RUN_PARALLEL=true
+
+# Browser Configuration (comma-separated)
+BROWSERS=chromium,firefox,webkit  # Default: all browsers
+# BROWSERS=chromium                # Chromium only
+# BROWSERS=chromium,firefox        # Chromium and Firefox only
 ```
 
 ### Playwright Config
@@ -82,6 +99,7 @@ Main configuration is in `playwright.config.ts`:
 - **screenshot**: only-on-failure
 - **baseURL**: Set from `.env` or defaults to production
 - **fullyParallel**: Controlled by `RUN_PARALLEL` env var
+- **browsers**: Chromium, Firefox, WebKit (cross-browser testing enabled)
 
 ## Project Structure
 ```

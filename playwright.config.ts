@@ -43,7 +43,7 @@ export default defineConfig({
       ],
       environmentInfo: {
         'Test Environment': process.env.TEST_ENV || 'QA',
-        'Browser': 'Chromium',
+        'Browsers': 'Chromium, Firefox, WebKit',
         'Node Version': process.version,
         'Test Framework': 'Playwright + TypeScript',
       },
@@ -70,15 +70,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] , headless : false},
     },
 
- /*    {
+    {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'], headless : false },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    }, */
+      use: { ...devices['Desktop Safari'], headless : false },
+    },
 
     /* Test against mobile viewports. */
     // {

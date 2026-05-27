@@ -73,6 +73,15 @@ export class ConfigManager {
     }
 
     /**
+     * Parse browsers from environment variable
+     * Defaults to all browsers: chromium, firefox, webkit
+     */
+    private parseBrowsers(): string[] {
+        const browserEnv = process.env.BROWSERS || 'chromium,firefox,webkit';
+        return browserEnv.split(',').map(b => b.trim().toLowerCase());
+    }
+
+    /**
      * Get environment-specific URLs based on TEST_ENV
      */
     private getEnvironmentUrls(): { uiBaseUrl: string; apiBaseUrl: string } {
@@ -132,7 +141,8 @@ export class ConfigManager {
             ui: {
                 baseUrl: urls.uiBaseUrl,
                 timeout: parseInt(process.env.UI_TIMEOUT || '30000', 10),
-                headless: process.env.HEADLESS !== 'false'
+                headless: process.env.HEADLESS !== 'false',
+                browsers: this.parseBrowsers()
             },
             environment: {
                 name: (process.env.TEST_ENV as any) || 'local',
@@ -319,6 +329,14 @@ export class ConfigManager {
     }
 
     /**
+     * Get list of browsers to test on
+     * @returns Array of browser names
+     */
+    public getBrowsers(): string[] {
+        return [...this.config.ui.browsers];
+    }
+
+    /**
      * Get complete configuration (for debugging)
      * WARNING: Contains sensitive data - use carefully
      * @returns Complete configuration object
@@ -341,6 +359,7 @@ export class ConfigManager {
         console.log(`Environment: ${this.config.environment.name}`);
         console.log(`CI Mode: ${this.config.environment.isCI}`);
         console.log(`Headless: ${this.config.ui.headless}`);
+        console.log(`Browsers: ${this.config.ui.browsers.join(', ')}`);
         console.log(`UI Base URL: ${this.config.ui.baseUrl}`);
         console.log(`API Base URL: ${this.config.api.baseUrl}`);
         console.log(`API Timeout: ${this.config.api.timeout}ms`);

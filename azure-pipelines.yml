@@ -52,8 +52,8 @@ stages:
             workingDirectory: $(Build.SourcesDirectory)
 
           # Install Playwright browsers (for local fallback if Azure service fails)
-          - script: npx playwright install --with-deps chromium
-            displayName: 'Install Playwright browsers'
+          - script: npx playwright install --with-deps
+            displayName: 'Install Playwright browsers (Chromium, Firefox, WebKit)'
 
           # Debug: Check pipeline variables
           - task: Bash@3
@@ -138,6 +138,7 @@ stages:
                 printf "BASE_URL=https://eventhub.rahulshettyacademy.com\n" >> .env
                 printf "API_BASE_URL=https://api.eventhub.rahulshettyacademy.com\n" >> .env
                 printf "RUN_PARALLEL=true\n" >> .env
+                printf "BROWSERS=chromium,firefox,webkit\n" >> .env
 
                 echo "✓ .env file created successfully"
                 echo ""

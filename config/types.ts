@@ -27,6 +27,7 @@ export interface UiConfig {
     baseUrl: string;
     timeout: number;
     headless: boolean;
+    browsers: string[];
 }
 
 /**
